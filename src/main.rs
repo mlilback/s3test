@@ -7,6 +7,7 @@ use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::BucketVersioningStatus::Enabled;
 use aws_sdk_s3::types::ChecksumAlgorithm;
 use clap::{Parser, Subcommand};
+use md5::{Digest};
 
 #[derive(Subcommand, Clone, Debug)]
 enum Commands {
@@ -31,10 +32,11 @@ struct Args {
     command: Option<Commands>,
 }
 
+const BUCKET_NAME: &str = "mlilback-test1";
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
-    const BUCKET_NAME: &str = "mlilback-test1";
     let creds = Credentials::from_keys("***REMOVED***", "***REMOVED***", None);
     let region= Region::new("us-east-1");
     let config = Config::builder()
@@ -79,12 +81,19 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .send().await?;
             if let Some(versions) = ver_result.versions {
                 for version in versions {
-                    println!("version: {}: {} ({})", version.version_id().unwrap(), version.size(), version.e_tag().unwrap());
+                    let str = version.e_tag().unwrap().to_string().to_ascii_lowercase();
+                    println!("version: {}: {} ({})", version.version_id().unwrap(), version.size(), &str[1..str.len()-1]);
                 }
             }
         }
         Some(Commands::PutVersion { name, file_path }) => {
             let bytes = tokio::fs::read(file_path).await?;
+            let hash = format!("{:x}", md5::Md5::digest(&bytes));
+            let existing = get_version_tags(&client, &name).await?;
+            if existing.contains(&hash) {
+                println!("version already exists");
+                process::exit(1);
+            }
             let result = client.put_object()
                 .bucket(BUCKET_NAME)
                 .key(name)
@@ -105,4 +114,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+async fn get_version_tags(client: &Client, name: &String) -> Result<Vec<String>, Box<dyn Error>> {
+    let ver_result = client.list_object_versions()
+        .bucket(BUCKET_NAME)
+        .set_prefix(Some(name.clone()))
+        .send().await?;
+    let mut results = Vec::new();
+    if let Some(versions) = ver_result.versions {
+        for version in versions {
+            let str = &version.e_tag().unwrap().to_string().to_ascii_lowercase();
+            let str = str[1..str.len()-1].to_string();
+            results.push(str);
+//            println!("version: {}: {} ({})", version.version_id().unwrap(), version.size(), &str[1..str.len()-1]);
+        }
+    }
+    Ok(results)
 }

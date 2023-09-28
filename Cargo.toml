@@ -12,3 +12,5 @@ aws-credential-types = { version = "0.55.2", features = ["hardcoded-credentials"
 aws-sdk-s3 = "0.27.0"
 clap = { version = "4.1.6", features = ["derive"] }
 tokio = { version = "1.28.0", features = ["full"] }
+md-5 = "0.10.6"
+base16ct = "0.2.0"
