@@ -89,9 +89,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::PutVersion { name, file_path }) => {
             let bytes = tokio::fs::read(file_path).await?;
             let hash = format!("{:x}", md5::Md5::digest(&bytes));
-            let existing = get_version_tags(&client, &name).await?;
-            if existing.contains(&hash) {
-                println!("version already exists");
+            let exist = get_version_for_hash(&client, &name, &hash).await?;
+            if let Some(ver) = exist {
+                println!("version already exists: {}", ver);
                 process::exit(1);
             }
             let result = client.put_object()
@@ -116,19 +116,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn get_version_tags(client: &Client, name: &String) -> Result<Vec<String>, Box<dyn Error>> {
+/// returns the version_id if already exists
+async fn get_version_for_hash(client: &Client, name: &String, hash: &String) -> Result<Option<String>, Box<dyn Error>> {
     let ver_result = client.list_object_versions()
         .bucket(BUCKET_NAME)
         .set_prefix(Some(name.clone()))
         .send().await?;
-    let mut results = Vec::new();
     if let Some(versions) = ver_result.versions {
         for version in versions {
             let str = &version.e_tag().unwrap().to_string().to_ascii_lowercase();
             let str = str[1..str.len()-1].to_string();
-            results.push(str);
-//            println!("version: {}: {} ({})", version.version_id().unwrap(), version.size(), &str[1..str.len()-1]);
+            if str == *hash {
+                return Ok(Some(version.version_id().unwrap().to_string()));
+            }
         }
+        return Ok(None)
     }
-    Ok(results)
+    Ok(None)
 }
