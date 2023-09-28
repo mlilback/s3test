@@ -5,6 +5,7 @@ use aws_sdk_s3::{Client, Config};
 use aws_sdk_s3::config::Region;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::BucketVersioningStatus::Enabled;
+use aws_sdk_s3::types::ChecksumAlgorithm;
 use clap::{Parser, Subcommand};
 
 #[derive(Subcommand, Clone, Debug)]
@@ -78,7 +79,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .send().await?;
             if let Some(versions) = ver_result.versions {
                 for version in versions {
-                    println!("version: {}: {}", version.version_id().unwrap(), version.size());
+                    println!("version: {}: {} ({})", version.version_id().unwrap(), version.size(), version.e_tag().unwrap());
                 }
             }
         }
@@ -87,6 +88,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             let result = client.put_object()
                 .bucket(BUCKET_NAME)
                 .key(name)
+                .checksum_algorithm(ChecksumAlgorithm::Sha256)
                 .body(ByteStream::from(bytes))
                 .send()
                 .await?;

@@ -42,7 +42,7 @@
 }]]></component>
   <component name="RunManager">
     <configuration name="Run" type="CargoCommandRunConfiguration" factoryName="Cargo Command" nameIsGenerated="true">
-      <option name="command" value="run" />
+      <option name="command" value="run list-versions foobar.txt" />
       <option name="workingDirectory" value="file://$PROJECT_DIR$" />
       <option name="emulateTerminal" value="false" />
       <option name="channel" value="DEFAULT" />
@@ -73,7 +73,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1695225946649</updated>
-      <workItem from="1695225947770" duration="18567000" />
+      <workItem from="1695225947770" duration="20120000" />
     </task>
     <servers />
   </component>
