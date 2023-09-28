@@ -1,7 +1,9 @@
+use std::error::Error;
 use std::process;
 use aws_sdk_config::{config::Credentials};
-use aws_sdk_s3::{Client, Config, Error};
+use aws_sdk_s3::{Client, Config};
 use aws_sdk_s3::config::Region;
+use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::BucketVersioningStatus::Enabled;
 use clap::{Parser, Subcommand};
 
@@ -10,7 +12,15 @@ enum Commands {
     ListFiles,
     ListVersions {
         name: String,
-    }
+    },
+    PutVersion {
+        name: String,
+        file_path: String,
+    },
+    DeleteVersion {
+        name: String,
+        version: String,
+    },
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -21,7 +31,7 @@ struct Args {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Error> {
+async fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
     const BUCKET_NAME: &str = "mlilback-test1";
     let creds = Credentials::from_keys("***REMOVED***", "***REMOVED***", None);
@@ -68,9 +78,28 @@ async fn main() -> Result<(), Error> {
                 .send().await?;
             if let Some(versions) = ver_result.versions {
                 for version in versions {
-                    println!("version: {:?}: {}", version.version_id().unwrap(), version.size());
+                    println!("version: {}: {}", version.version_id().unwrap(), version.size());
                 }
             }
+        }
+        Some(Commands::PutVersion { name, file_path }) => {
+            let bytes = tokio::fs::read(file_path).await?;
+            let result = client.put_object()
+                .bucket(BUCKET_NAME)
+                .key(name)
+                .body(ByteStream::from(bytes))
+                .send()
+                .await?;
+            println!("put version: {}", result.version_id().unwrap());
+        }
+        Some(Commands::DeleteVersion { name, version }) => {
+            let result = client.delete_object()
+                .bucket(BUCKET_NAME)
+                .key(name)
+                .version_id(version)
+                .send()
+                .await?;
+            println!("delete result: {:?}", result);
         }
     }
     Ok(())
