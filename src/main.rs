@@ -32,15 +32,26 @@ enum Commands {
 #[derive(Parser, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[arg(short, long, value_name = "BUCKET NAME", help = "bucket name to use. defaults to 'enlighten-server-local'")]
+    bucket: Option<String>,
+
     #[command(subcommand)]
     command: Option<Commands>,
 }
 
-const BUCKET_NAME: &str = "enlighten-server-local";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
+
     let args = Args::parse();
+    let bucket_name: &str;
+    if args.bucket.is_some() {
+        bucket_name = args.bucket.as_ref().unwrap();
+    } else {
+        bucket_name = "enlighten-server-local";
+    }
+
+
     let creds = Credentials::from_keys("***REMOVED***", "***REMOVED***", None);
     let region= Region::new("us-east-1");
     let config = Config::builder()
@@ -52,7 +63,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     //make sure versioning is enabled
     let v_res = client.get_bucket_versioning()
-        .bucket(BUCKET_NAME)
+        .bucket(bucket_name)
         .send()
         .await?;
     if v_res.status.is_none() || *v_res.status().unwrap() != Enabled {
@@ -67,14 +78,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(Commands::ListFiles) => {
             let result = client.list_objects_v2()
-                .bucket(BUCKET_NAME)
+                .bucket(bucket_name)
                 .send()
                 .await?;
             display_object_list(result);
         }
         Some(Commands::Ls { prefix} ) => {
             let result = client.list_objects_v2()
-                .bucket(BUCKET_NAME)
+                .bucket(bucket_name)
                 .prefix(prefix.clone())
                 .send()
                 .await?;
@@ -82,7 +93,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(Commands::ListVersions { name}) => {
             let ver_result = client.list_object_versions()
-                .bucket(BUCKET_NAME)
+                .bucket(bucket_name)
                 .set_prefix(Some(name.clone()))
                 .send().await?;
             if let Some(versions) = ver_result.versions {
@@ -95,13 +106,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         Some(Commands::PutVersion { name, file_path }) => {
             let bytes = tokio::fs::read(file_path).await?;
             let hash = format!("{:x}", md5::Md5::digest(&bytes));
-            let exist = get_version_for_hash(&client, &name, &hash).await?;
+            let exist = get_version_for_hash(&client, &name, &hash, bucket_name).await?;
             if let Some(ver) = exist {
                 println!("version already exists: {}", ver);
                 process::exit(1);
             }
             let result = client.put_object()
-                .bucket(BUCKET_NAME)
+                .bucket(bucket_name)
                 .key(name)
                 .checksum_algorithm(ChecksumAlgorithm::Sha256)
                 .body(ByteStream::from(bytes))
@@ -111,7 +122,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
         Some(Commands::DeleteVersion { name, version }) => {
             let result = client.delete_object()
-                .bucket(BUCKET_NAME)
+                .bucket(bucket_name)
                 .key(name)
                 .version_id(version)
                 .send()
@@ -133,9 +144,9 @@ fn display_object_list(result: ListObjectsV2Output) {
 }
 
 /// returns the version_id if already exists
-async fn get_version_for_hash(client: &Client, name: &String, hash: &String) -> Result<Option<String>, Box<dyn Error>> {
+async fn get_version_for_hash(client: &Client, name: &String, hash: &String, bucket_name: &str) -> Result<Option<String>, Box<dyn Error>> {
     let ver_result = client.list_object_versions()
-        .bucket(BUCKET_NAME)
+        .bucket(bucket_name)
         .set_prefix(Some(name.clone()))
         .send().await?;
     if let Some(versions) = ver_result.versions {
