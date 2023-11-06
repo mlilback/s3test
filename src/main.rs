@@ -3,6 +3,7 @@ use std::process;
 use aws_sdk_config::{config::Credentials};
 use aws_sdk_s3::{Client, Config};
 use aws_sdk_s3::config::Region;
+use aws_sdk_s3::operation::list_objects_v2::ListObjectsV2Output;
 use aws_sdk_s3::primitives::ByteStream;
 use aws_sdk_s3::types::BucketVersioningStatus::Enabled;
 use aws_sdk_s3::types::ChecksumAlgorithm;
@@ -12,6 +13,9 @@ use md5::{Digest};
 #[derive(Subcommand, Clone, Debug)]
 enum Commands {
     ListFiles,
+    Ls {
+        prefix: String,
+    },
     ListVersions {
         name: String,
     },
@@ -32,7 +36,7 @@ struct Args {
     command: Option<Commands>,
 }
 
-const BUCKET_NAME: &str = "mlilback-test1";
+const BUCKET_NAME: &str = "enlighten-server-local";
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -66,13 +70,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .bucket(BUCKET_NAME)
                 .send()
                 .await?;
-            if let Some(contents) = result.contents {
-                for object in contents {
-                    println!("Object: {:?}", object.key().unwrap_or("<none>"));
-                }
-            } else {
-                println!("no contents");
-            }
+            display_object_list(result);
+        }
+        Some(Commands::Ls { prefix} ) => {
+            let result = client.list_objects_v2()
+                .bucket(BUCKET_NAME)
+                .prefix(prefix.clone())
+                .send()
+                .await?;
+            display_object_list(result);
         }
         Some(Commands::ListVersions { name}) => {
             let ver_result = client.list_object_versions()
@@ -114,6 +120,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
+}
+
+fn display_object_list(result: ListObjectsV2Output) {
+    if let Some(contents) = result.contents {
+        for object in contents {
+            println!("Object: {:?}", object.key().unwrap_or("<none>"));
+        }
+    } else {
+        println!("no contents");
+    }
 }
 
 /// returns the version_id if already exists

@@ -21,6 +21,9 @@
   <component name="MacroExpansionManager">
     <option name="directoryName" value="yjrjuii8" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
   <component name="ProjectId" id="2VfT4qJ57Mp0mIuinxcC3CivY05" />
   <component name="ProjectViewState">
     <option name="foldersAlwaysOnTop" value="false" />
@@ -36,6 +39,7 @@
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
     "org.rust.cargo.project.model.PROJECT_DISCOVERY": "true",
     "vue.rearranger.settings.migration": "true"
   }
@@ -73,11 +77,24 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1695225946649</updated>
-      <workItem from="1695225947770" duration="23908000" />
+      <workItem from="1695225947770" duration="36654000" />
+      <workItem from="1697124498404" duration="598000" />
+      <workItem from="1699293105360" duration="6074000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/src/main.rs</url>
+          <line>109</line>
+          <option name="timeStamp" value="7" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>
