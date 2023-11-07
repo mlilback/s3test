@@ -29,6 +29,10 @@ enum Commands {
         name: String,
         version: String,
     },
+    CopyObject {
+        source: String,
+        dest: String,
+    },
 }
 
 #[derive(Parser, Debug, Clone)]
@@ -134,6 +138,15 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 .send()
                 .await?;
             println!("delete result: {:?}", result);
+        }
+        Some(Commands::CopyObject { source, dest }) => {
+            let result = client.copy_object()
+                .bucket(bucket_name.clone())
+                .copy_source(format!("{}/{}", bucket_name, source))
+                .key(dest)
+                .send()
+                .await?;
+            println!("copy result: {:?}", result);
         }
     }
     Ok(())
