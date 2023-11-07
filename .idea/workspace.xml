@@ -8,6 +8,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="992d354f-a14d-44eb-9381-414448ac7066" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -79,7 +82,7 @@
       <updated>1695225946649</updated>
       <workItem from="1695225947770" duration="36654000" />
       <workItem from="1697124498404" duration="598000" />
-      <workItem from="1699293105360" duration="6923000" />
+      <workItem from="1699293105360" duration="9161000" />
     </task>
     <servers />
   </component>
@@ -91,7 +94,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
           <url>file://$PROJECT_DIR$/src/main.rs</url>
-          <line>120</line>
+          <line>126</line>
           <option name="timeStamp" value="7" />
         </line-breakpoint>
       </breakpoints>

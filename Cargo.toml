@@ -14,3 +14,4 @@ clap = { version = "4.1.6", features = ["derive"] }
 tokio = { version = "1.28.0", features = ["full"] }
 md-5 = "0.10.6"
 base16ct = "0.2.0"
+dotenv = "0.15.0"
